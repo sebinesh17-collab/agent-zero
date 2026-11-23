@@ -1,0 +1,49 @@
+# Tests DOX
+
+## Purpose
+
+- Own pytest regression, security, integration, and contract tests.
+- Keep tests focused on behavior that should remain stable across framework changes.
+
+## Ownership
+
+- Test files live directly under `tests/` and are named for the behavior or subsystem they cover.
+- Shared fixtures should be added only when multiple tests need them.
+- Runtime artifacts created during tests should use pytest temporary directories or existing isolated test helpers.
+
+## Local Contracts
+
+- Watchdog regressions cover incremental subscriptions, overlapping roots, callback replacement, scheduling retries, registration during refresh, and live event delivery with isolated temporary directories.
+- UI bundle inventory regressions cover deterministic order, recursive and shallow traversal, contained and escaping symlinks, and avoidance of repeated resolution for ordinary files.
+- Tests must not require real API keys, network-only services, private user data, or local `usr/` runtime state. Manual provider demos must guard model creation and requests behind their executable entry point so collection never runs them.
+- Root `pytest.ini` selects `tests` and `plugins` with importlib import mode; root `conftest.py` keeps `tests/` importable and ignores plugin API handler modules whose names match `test_*.py`.
+- Tests that reimport project modules under stubs, swap `files._base_dir`, or populate extension/plugin caches must restore them so later test files see pristine modules and caches.
+- Keep tests deterministic and isolated from existing chats, uploads, downloads, plugin state, and settings.
+- Prefer exercising public helper/API contracts over fragile implementation details when practical.
+- Security regression tests should assert the protected behavior directly.
+- `test_telegram_config_scope.py` covers scoped bot ownership, token conflicts, current access rules, activation, connection revocation, outbound delivery, and session isolation using temporary plugin configuration.
+- `test_browser_lifecycle.py` covers idle suspension, running/paused owners and parent chats, downloads, concurrent calls, recovery-save failures, passive polling, global disable, and display ownership cleanup without user state.
+- Launcher gateway tests must cover feature negotiation, authenticated and
+  CSRF-protected control, acknowledgement timeout, identity lifecycle,
+  context-bound CLI routing precedence, duplicate/multiple-host behavior,
+  scope-driven availability, and emergency disconnect without a live host.
+- Composer control tests use unrelated fake extensions and verify scoped dispatch, capability negotiation, authentication/CSRF requirements, invalid input rejection, and unchanged plugin error responses without depending on optional plugins.
+
+## Work Guidance
+
+- Add focused tests near the affected subsystem's existing tests.
+- Use descriptive test names that state the regression or contract.
+- Avoid broad sleeps or real-time dependencies; use monkeypatching or controlled clocks where possible.
+
+## Verification
+
+- Run `pytest` for broad changes.
+- Run `node --test tests/test_file_browser_views.mjs` for independent chat/embedded views and shared browser configuration.
+- Run `pytest tests/test_name.py` for narrow changes and mention any broader test gaps at closeout.
+- Run `node --test tests/test_onboarding.mjs` for onboarding defaults and completion staying in the original chat.
+- Run `pytest tests/test_litellm_sdk.py -q` for LiteLLM/OpenAI upgrades. Its loopback provider exercises the installed SDK's sync/async calls, streaming, tool/state preservation, fallback, embeddings, and Anthropic cache markers without real keys or external requests.
+- Run `pytest tests/test_framework_dependencies.py -q` for dependency migration changes; verify stale self-update environments, process restart, and already-current image installs.
+
+## Child DOX Index
+
+No child DOX files.

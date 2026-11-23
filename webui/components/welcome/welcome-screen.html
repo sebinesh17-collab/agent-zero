@@ -1,0 +1,1015 @@
+<html>
+
+<head>
+    <script type="module">
+        import { store } from "/components/welcome/welcome-store.js";
+    </script>
+</head>
+
+<body>
+    <div x-data>
+        <template x-if="$store.welcomeStore">
+            <div x-init="$store.welcomeStore.init(); if ($store.welcomeStore.isVisible) { $store.welcomeStore.onCreate(); } $watch('$store.welcomeStore.isVisible', (visible) => { if (visible) { $store.welcomeStore.onCreate(); } });"
+                 class="welcome-container">
+                <x-extension id="welcome-screen-start"></x-extension>
+
+                <main class="welcome-shell" x-data="{ cleanupLayout: null }"
+                      x-create="void (cleanupLayout = $store.welcomeStore.mountLayout($el))"
+                      x-destroy="cleanupLayout?.()">
+                    <section class="welcome-alerts"
+                             x-show="$store.welcomeStore.sortedBanners.length > 0">
+                        <div class="welcome-banners" x-show="$store.welcomeStore.sortedBanners.length > 0">
+                            <x-extension id="welcome-banners-start"></x-extension>
+                            <template x-for="banner in $store.welcomeStore.sortedBanners" :key="banner.id">
+                                <article class="welcome-banner" :class="$store.welcomeStore.getBannerClass(banner.type)">
+                                    <div class="welcome-banner-icon">
+                                        <x-icon :name="$store.welcomeStore.getBannerIcon(banner.type)"></x-icon>
+                                    </div>
+                                    <div class="welcome-banner-content">
+                                        <div class="welcome-banner-title" x-text="banner.title"></div>
+                                        <div class="welcome-banner-html"
+                                             x-html="banner.html"
+                                             @click="$store.welcomeStore.handleBannerHtmlClick($event)"></div>
+                                    </div>
+                                    <button class="welcome-banner-cta"
+                                            type="button"
+                                            x-show="banner.cta_text && banner.cta_action"
+                                            @click.stop="$store.welcomeStore.executeBannerAction(banner.cta_action)"
+                                            :aria-label="banner.cta_text">
+                                        <span x-text="banner.cta_text"></span>
+                                        <x-icon aria-hidden="true" name="arrow_forward"></x-icon>
+                                    </button>
+                                    <button class="welcome-banner-dismiss"
+                                            type="button"
+                                            x-show="banner.dismissible !== false"
+                                            @click.stop="$store.welcomeStore.dismissBanner(banner.id)"
+                                            title="Dismiss"
+                                            aria-label="Dismiss">
+                                        <x-icon name="close"></x-icon>
+                                    </button>
+                                </article>
+                            </template>
+                            <x-extension id="welcome-banners-end"></x-extension>
+                        </div>
+                    </section>
+
+                    <div class="welcome-board">
+                        <section class="welcome-intro" data-welcome-block="intro" data-welcome-label="Greeting and composer" x-show="!$store.welcomeStore.hiddenSections.includes('intro')">
+                            <header class="welcome-hero">
+                                <div class="welcome-section-header">
+                                    <h1>Hello! I'm Agent Zero <span aria-hidden="true">&#128075;</span></h1>
+                                    <div class="welcome-panel-actions">
+                                        <button type="button" data-welcome-handle></button>
+                                        <button class="welcome-panel-icon-button welcome-intro-dismiss"
+                                                type="button"
+                                                @click="$store.welcomeStore.dismissSection('intro')"
+                                                title="Hide greeting and composer"
+                                                aria-label="Hide greeting and composer">
+                                            <x-icon name="close"></x-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p x-text="$store.welcomeStore.heroSubtitle"></p>
+                            </header>
+
+                            <section class="welcome-composer" aria-label="Start a new chat">
+                                <x-component path="chat/attachments/inputPreview.html"></x-component>
+                                <x-component path="chat/input/chat-bar-input.html"></x-component>
+                            </section>
+                        </section>
+
+                        <section class="welcome-quick-section" data-welcome-block="quick-actions" data-welcome-label="Quick Actions"
+                                 :data-welcome-size="$store.welcomeStore.quickActionsWide ? 'full' : 'half'"
+                                 x-show="!$store.welcomeStore.hiddenSections.includes('quick-actions')">
+                            <header class="welcome-section-header">
+                                <h2>Quick Actions</h2>
+                                <div class="welcome-panel-actions">
+                                    <button class="welcome-panel-icon-button"
+                                            type="button"
+                                            :aria-label="$store.welcomeStore.quickActionsWide ? 'Use half-width Quick Actions panel' : 'Expand Quick Actions panel'"
+                                            @click="$store.welcomeStore.toggleQuickActionsWidth()">
+                                        <x-icon :name="$store.welcomeStore.quickActionsWide ? 'close_fullscreen' : 'open_in_full'"></x-icon>
+                                    </button>
+                                    <button type="button" data-welcome-handle></button>
+                                    <button class="welcome-panel-icon-button"
+                                            type="button"
+                                            @click="$store.welcomeStore.dismissSection('quick-actions')"
+                                            title="Hide Quick Actions"
+                                            aria-label="Hide Quick Actions">
+                                        <x-icon name="close"></x-icon>
+                                    </button>
+                                </div>
+                            </header>
+                            <div class="welcome-actions">
+                                <x-extension id="welcome-actions-start"></x-extension>
+                                <button type="button" class="welcome-action-card" @click="$store.welcomeStore.executeAction('projects')">
+                                    <x-icon class="welcome-action-icon" name="folder"></x-icon>
+                                    <span class="welcome-action-title">Projects</span>
+                                    <x-icon class="welcome-action-arrow" name="chevron_right"></x-icon>
+                                </button>
+                                <button type="button" class="welcome-action-card" @click="$store.welcomeStore.executeAction('files')">
+                                    <x-icon class="welcome-action-icon" name="folder_open"></x-icon>
+                                    <span class="welcome-action-title">Files</span>
+                                    <x-icon class="welcome-action-arrow" name="chevron_right"></x-icon>
+                                </button>
+                                <button type="button" class="welcome-action-card" @click="$store.welcomeStore.executeAction('settings')">
+                                    <x-icon class="welcome-action-icon" name="settings"></x-icon>
+                                    <span class="welcome-action-title">Settings</span>
+                                    <x-icon class="welcome-action-arrow" name="chevron_right"></x-icon>
+                                </button>
+                                <button type="button" class="welcome-action-card" @click="$store.welcomeStore.executeAction('plugins')">
+                                    <x-icon class="welcome-action-icon" name="extension"></x-icon>
+                                    <span class="welcome-action-title">Plugins</span>
+                                    <x-icon class="welcome-action-arrow" name="chevron_right"></x-icon>
+                                </button>
+                                <button type="button" class="welcome-action-card is-wide" @click="$store.welcomeStore.executeAction('website')">
+                                    <x-icon class="welcome-action-icon" name="language"></x-icon>
+                                    <span class="welcome-action-title">Visit Agent Zero Website</span>
+                                    <x-icon class="welcome-action-arrow" name="open_in_new"></x-icon>
+                                </button>
+                            </div>
+                        </section>
+
+                        <section id="welcome-accounts" class="welcome-discovery-block" data-welcome-block="accounts" data-welcome-label="Your AI accounts" data-welcome-size="half"
+                                 x-show="$store.discoveryStore?.oauthAccountCards.length > 0"></section>
+                        <section id="welcome-channels" class="welcome-discovery-block" data-welcome-block="channels" data-welcome-label="Connect Channels" data-welcome-size="half"
+                                 x-show="$store.discoveryStore?.featureCards.length > 0"></section>
+                        <article class="welcome-system-card" data-welcome-block="system" data-welcome-label="System Resources"
+                                 :data-welcome-size="$store.welcomeStore.systemWide ? 'full' : 'half'"
+                                 x-show="$store.welcomeStore.systemResourceBanner"
+                                 x-transition.opacity>
+                            <header class="welcome-panel-header">
+                                <h2 x-text="$store.welcomeStore.systemResourceBanner?.title || 'System Resources'"></h2>
+                                <div class="welcome-panel-actions">
+                                    <button class="welcome-panel-icon-button"
+                                            type="button"
+                                            :aria-label="$store.welcomeStore.systemWide ? 'Use half-width System Resources panel' : 'Expand System Resources panel'"
+                                            @click="$store.welcomeStore.toggleSystemWidth()">
+                                        <x-icon :name="$store.welcomeStore.systemWide ? 'close_fullscreen' : 'open_in_full'"></x-icon>
+                                    </button>
+                                    <button class="welcome-panel-icon-button"
+                                            type="button"
+                                            :disabled="$store.welcomeStore.bannersLoading"
+                                            @click.stop="$store.welcomeStore.refreshBanners(true)"
+                                            title="Refresh"
+                                            aria-label="Refresh System Resources">
+                                        <x-icon name="refresh"></x-icon>
+                                    </button>
+                                    <button type="button" data-welcome-handle></button>
+                                    <button class="welcome-panel-icon-button"
+                                            type="button"
+                                            x-show="$store.welcomeStore.systemResourceBanner?.dismissible !== false"
+                                            @click.stop="$store.welcomeStore.dismissBanner($store.welcomeStore.systemResourceBanner?.id || 'system-resources')"
+                                            title="Dismiss"
+                                            aria-label="Dismiss System Resources">
+                                        <x-icon name="close"></x-icon>
+                                    </button>
+                                </div>
+                            </header>
+                            <div class="welcome-system-body"
+                                 x-html="$store.welcomeStore.systemResourceBanner?.html || ''"></div>
+                        </article>
+                    </div>
+                    <x-extension id="welcome-actions-end"></x-extension>
+                    <p id="welcome-layout-help" class="welcome-layout-sr">Drag to move a section, or click for move options. Use arrow keys to move, Home for first, and End for last.</p>
+                    <p class="welcome-layout-sr" data-layout-status role="status" aria-live="polite" aria-atomic="true"></p>
+                    <div id="welcome-layout-menu" class="welcome-layout-menu" role="group" aria-label="Move section" hidden>
+                        <button type="button" data-move="-1"><x-icon name="arrow_upward"></x-icon>Move up</button>
+                        <button type="button" data-move="1"><x-icon name="arrow_downward"></x-icon>Move down</button>
+                    </div>
+                </main>
+
+                <x-extension id="welcome-screen-end"></x-extension>
+
+                <div class="welcome-restore">
+                    <button type="button"
+                            class="welcome-panel-icon-button welcome-panel-text-button"
+                            x-show="$store.welcomeStore.hasDismissedBanners || $store.welcomeStore.hiddenSections.length > 0 || $store.discoveryStore?.hasDismissedCards"
+                            :disabled="$store.welcomeStore.bannersLoading && !$store.welcomeStore.hiddenSections.length"
+                            @click="$store.welcomeStore.undismissAll()">
+                        <x-icon name="undo"></x-icon>
+                        <span>Show all dismissed</span>
+                    </button>
+                    <button type="button" class="welcome-panel-icon-button welcome-panel-text-button"
+                            @click="$store.welcomeStore.openWelcomePlugins()">
+                        <x-icon name="extension"></x-icon>
+                        <span>Find welcome screen plugins</span>
+                    </button>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <style>
+        .welcome-container {
+            position: relative;
+            min-height: 100vh;
+            overflow: clip;
+            padding: clamp(4.8rem, 8vh, 6.4rem) clamp(1.25rem, 5.4vw, 6.5rem) 3.5rem;
+            color: var(--color-text);
+            font-family: var(--font-family-main, "Rubik", Arial, Helvetica, sans-serif);
+        }
+
+        .welcome-container > x-extension,
+        .welcome-actions > x-extension,
+        .welcome-banners > x-extension,
+        .welcome-shell > x-extension,
+        .welcome-shell > x-extension > x-component,
+        .welcome-shell > x-extension > x-component > div[x-data] {
+            display: contents;
+        }
+
+        .welcome-container::before {
+            content: "";
+            position: absolute;
+            inset: -6% -8% -10% 10%;
+            background-image: url("./public/darkSymbol.svg");
+            background-repeat: no-repeat;
+            background-position: center top;
+            background-size: min(78vw, 980px) auto;
+            opacity: 0.105;
+            pointer-events: none;
+        }
+
+        .light-mode .welcome-container::before {
+            filter: invert(0.55);
+            opacity: 0.055;
+        }
+
+        .welcome-shell,
+        .welcome-restore {
+            position: relative;
+            z-index: 1;
+            width: min(100%, 1220px);
+            margin: 0 auto;
+        }
+
+        .welcome-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 1.55rem;
+            padding-top: 4rem;
+        }
+
+        .welcome-restore {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            margin-top: 1.55rem;
+        }
+
+        .welcome-intro {
+            display: flex;
+            flex-direction: column;
+            gap: 1.55rem;
+        }
+
+        .welcome-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .welcome-hero .welcome-section-header {
+            container-type: inline-size;
+        }
+
+        .welcome-hero h1 {
+            margin: 0;
+            color: var(--color-text);
+            font-size: min(clamp(2rem, 3.4vw, 2.75rem), calc((100cqi - 56px - 1.35rem) / 12));
+            font-weight: 440;
+            letter-spacing: 0;
+            line-height: 1.08;
+            white-space: nowrap;
+        }
+
+        .welcome-hero p {
+            margin: 0.5rem 0 0;
+            color: color-mix(in srgb, var(--color-text) 66%, transparent);
+            font-size: clamp(1.08rem, 1.8vw, 1.35rem);
+            line-height: 1.35;
+        }
+
+        .welcome-composer {
+            width: 100%;
+            min-height: 4.9rem;
+        }
+
+        .welcome-composer > x-component,
+        .welcome-composer > x-component > div[x-data],
+        .welcome-composer > x-component > div[x-data] > template + div {
+            display: contents;
+        }
+
+        .welcome-composer .input-row {
+            min-height: 4.9rem;
+            padding: 0.58rem 0.7rem 0.58rem 0.86rem;
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--color-panel) 64%, var(--color-background) 36%);
+        }
+
+        .welcome-composer #chat-input {
+            min-height: 3.2rem;
+            padding-right: 0.35rem;
+            font-size: 1.03rem;
+        }
+
+        .welcome-composer #expand-button {
+            display: none;
+        }
+
+        .welcome-composer .chat-more-panel {
+            top: calc(100% + 0.55rem);
+            bottom: auto;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .welcome-alerts {
+            display: grid;
+            gap: 0.7rem;
+        }
+
+        .welcome-banners {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .welcome-banner,
+        .welcome-action-card,
+        .welcome-panel-card,
+        .welcome-system-card {
+            border: 1px solid color-mix(in srgb, var(--color-border) 66%, transparent);
+            background: color-mix(in srgb, var(--color-panel) 78%, var(--color-background) 22%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.026);
+            backdrop-filter: blur(18px);
+        }
+
+        .welcome-banner {
+            --welcome-banner-accent: #2f6bff;
+            position: relative;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto auto;
+            align-items: start;
+            gap: 1rem;
+            min-height: 5.45rem;
+            padding: 1rem 1.1rem;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .welcome-banner.banner-info {
+            --welcome-banner-accent: #2f6bff;
+        }
+
+        .welcome-banner.banner-warning {
+            --welcome-banner-accent: #f59e0b;
+        }
+
+        .welcome-banner.banner-error {
+            --welcome-banner-accent: #ef4444;
+        }
+
+        .welcome-banner-icon {
+            display: inline-flex;
+            width: 2.25rem;
+            height: 2.25rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: var(--welcome-banner-accent);
+            background: color-mix(in srgb, var(--welcome-banner-accent) 9%, transparent);
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--welcome-banner-accent) 12%, transparent);
+        }
+
+        .welcome-banner-icon .material-symbols-outlined {
+            font-size: 1.28rem;
+        }
+
+        .welcome-banner-content {
+            flex: 1;
+            min-width: 0;
+            padding-top: 0.05rem;
+        }
+
+        .welcome-banner-title {
+            margin-bottom: 0.28rem;
+            color: var(--color-text);
+            font-size: 1rem;
+            font-weight: 560;
+            line-height: 1.25;
+        }
+
+        .welcome-banner-html {
+            max-width: 72ch;
+            color: color-mix(in srgb, var(--color-text) 58%, transparent);
+            font-size: 0.92rem;
+            line-height: 1.45;
+        }
+
+        .welcome-banner-html a {
+            color: #5f83ff;
+            text-decoration: none;
+        }
+
+        .welcome-banner-html a:hover {
+            text-decoration: underline;
+        }
+
+        .welcome-banner-cta,
+        .welcome-banner-html .btn,
+        .welcome-banner-html button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 2.35rem;
+            border: 0;
+            border-radius: 8px;
+            padding: 0.55rem 0.9rem;
+            background-color: var(--color-highlight);
+            color: #fff;
+            font-family: var(--font-family-main, "Rubik", Arial, Helvetica, sans-serif);
+            font-size: 0.88rem;
+            font-weight: 460;
+            line-height: 1.2;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transition: background-color 0.18s ease;
+        }
+
+        .welcome-banner-cta {
+            align-self: center;
+            justify-self: end;
+            gap: 0.36rem;
+            white-space: nowrap;
+        }
+
+        .welcome-banner-cta .material-symbols-outlined {
+            font-size: 1.05rem;
+        }
+
+        .welcome-banner-cta:hover,
+        .welcome-banner-cta:focus-visible,
+        .welcome-banner-html .btn:hover,
+        .welcome-banner-html .btn:focus-visible,
+        .welcome-banner-html button:hover,
+        .welcome-banner-html button:focus-visible {
+            background-color: color-mix(in srgb, var(--color-highlight) 80%, black);
+            outline: none;
+        }
+
+        .welcome-banner-dismiss {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            border: 0;
+            background: transparent;
+            color: color-mix(in srgb, var(--color-text) 64%, transparent);
+            cursor: pointer;
+            font-family: var(--font-family-main, "Rubik", Arial, Helvetica, sans-serif);
+        }
+
+        .welcome-banner-dismiss {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 8px;
+            margin: -0.2rem -0.2rem 0 0;
+        }
+
+        .welcome-banner-dismiss:hover {
+            color: var(--color-text);
+            background: color-mix(in srgb, var(--color-border) 45%, transparent);
+        }
+
+        .welcome-panel-icon-button.welcome-panel-text-button {
+            width: auto;
+            height: auto;
+            gap: 0.4rem;
+            padding: 0.45rem 0;
+            font-size: 0.82rem;
+            transition: color 180ms ease, opacity 180ms ease;
+        }
+
+        .welcome-panel-icon-button.welcome-panel-text-button:hover,
+        .welcome-panel-icon-button.welcome-panel-text-button:focus-visible {
+            background: transparent;
+        }
+
+        .welcome-panel-icon-button.welcome-panel-text-button:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 3px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .welcome-panel-icon-button.welcome-panel-text-button { transition: none; }
+        }
+
+        .welcome-quick-section {
+            display: grid;
+            align-content: start;
+            gap: 0.82rem;
+            container: welcome-quick / inline-size;
+        }
+
+        .welcome-quick-section h2,
+        .welcome-panel-header h2 {
+            margin: 0;
+            color: var(--color-text);
+            font-size: 1.05rem;
+            font-weight: 520;
+            line-height: 1.2;
+        }
+
+        .welcome-actions {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .welcome-action-card {
+            appearance: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-height: 4.6rem;
+            border-radius: 8px;
+            padding: 1.05rem 1rem;
+            color: inherit;
+            cursor: pointer;
+            font-family: var(--font-family-main, "Rubik", Arial, Helvetica, sans-serif);
+            text-align: left;
+            transition:
+                border-color 0.18s ease,
+                background-color 0.18s ease,
+                box-shadow 0.18s ease,
+                transform 0.18s ease;
+        }
+
+        .welcome-action-card.is-wide {
+            grid-column: span 2;
+        }
+
+        .welcome-action-card:hover,
+        .welcome-action-card:focus-visible {
+            border-color: color-mix(in srgb, var(--color-border) 88%, var(--color-text) 12%);
+            background: color-mix(in srgb, var(--color-panel) 86%, var(--color-background) 14%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.036),
+                0 16px 34px rgba(0, 0, 0, 0.18);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        .welcome-action-icon {
+            color: #2f6bff;
+            font-size: 2.35rem;
+            line-height: 1;
+        }
+
+        .welcome-action-title {
+            flex: 1;
+            min-width: 0;
+            color: var(--color-text);
+            font-size: 1rem;
+            font-weight: 520;
+            line-height: 1.25;
+        }
+
+        .welcome-action-arrow {
+            color: var(--color-text);
+            font-size: 1.35rem;
+            opacity: 0.8;
+        }
+
+        .welcome-board {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.55rem 1rem;
+            align-items: stretch;
+        }
+
+        [data-welcome-block] {
+            grid-column: 1 / -1;
+            min-width: 0;
+        }
+
+        .welcome-board > .is-paired,
+        .welcome-board > .welcome-quick-section[data-welcome-size="half"],
+        .welcome-board > .welcome-system-card[data-welcome-size="half"] {
+            grid-column: auto;
+        }
+
+        .welcome-discovery-block {
+            display: grid;
+            container: welcome-discovery / inline-size;
+        }
+
+        .welcome-shell .discovery-slot {
+            display: contents;
+        }
+
+        .welcome-board .welcome-drag-handle {
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            opacity: 0.68;
+        }
+
+        .welcome-board .welcome-drag-handle:focus-visible {
+            opacity: 1;
+            outline: 2px solid var(--color-text);
+            outline-offset: 2px;
+        }
+
+        .welcome-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .welcome-board .is-dragging {
+            opacity: 0.38;
+            outline: 1px dashed var(--color-text-secondary);
+            outline-offset: 5px;
+        }
+
+        .welcome-drag-ghost, .welcome-drop-marker {
+            position: fixed;
+            pointer-events: none;
+            z-index: 2000;
+        }
+
+        .welcome-drag-ghost {
+            padding: 0.65rem 0.9rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            background: var(--color-panel);
+            color: var(--color-text);
+            box-shadow: 0 8px 24px #0004;
+            font-size: 0.9rem;
+            max-width: calc(100vw - 24px);
+        }
+
+        .welcome-drop-marker {
+            background: var(--color-text);
+            border-radius: 2px;
+        }
+
+        .welcome-layout-menu {
+            position: fixed;
+            z-index: 2001;
+            min-width: 150px;
+            padding: 0.3rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            background: var(--color-panel);
+            box-shadow: 0 8px 24px #0003;
+        }
+
+        .welcome-layout-menu button {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            width: 100%;
+            padding: 0.6rem;
+            border: 0;
+            border-radius: 5px;
+            background: transparent;
+            color: var(--color-text);
+            font: inherit;
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .welcome-layout-menu button:hover, .welcome-layout-menu button:focus-visible {
+            background: var(--color-background);
+        }
+
+        .welcome-layout-menu button:disabled {
+            opacity: 0.35;
+            cursor: default;
+        }
+
+        .welcome-layout-menu x-icon {
+            font-size: 1rem;
+        }
+
+        .welcome-layout-sr {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
+
+        @media (hover: none), (pointer: coarse) {
+            .welcome-board .welcome-drag-handle {
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+
+        .welcome-system-card {
+            min-width: 0;
+            container: welcome-system / inline-size;
+            border-radius: 8px;
+            padding: 1.6rem 1.7rem;
+            text-align: left;
+        }
+
+        .welcome-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .welcome-panel-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            flex: 0 0 auto;
+        }
+
+        .welcome-panel-icon-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            width: 28px;
+            height: 28px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--color-secondary);
+            opacity: 0.68;
+            cursor: pointer;
+            font-family: var(--font-family-main, "Rubik", Arial, Helvetica, sans-serif);
+        }
+
+        .welcome-panel-icon-button:hover,
+        .welcome-panel-icon-button:focus-visible {
+            opacity: 1;
+            color: var(--color-text);
+            background: color-mix(in srgb, var(--color-border) 84%, transparent);
+            outline: none;
+        }
+
+        .welcome-panel-icon-button:disabled {
+            cursor: default;
+            opacity: 0.45;
+        }
+
+        .welcome-panel-icon-button .material-symbols-outlined {
+            font-size: 1rem;
+        }
+
+        .light-mode .welcome-panel-icon-button,
+        .light-mode .welcome-shell .discovery-dismiss {
+            color: var(--color-text);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .welcome-intro:not(:hover):not(:focus-within) .welcome-intro-dismiss,
+            .welcome-intro:not(:hover):not(:focus-within) .welcome-drag-handle:not([aria-expanded="true"]),
+            .welcome-quick-section:not(:hover):not(:focus-within) .welcome-panel-actions > .welcome-panel-icon-button:not([aria-expanded="true"]) {
+                opacity: 0;
+            }
+        }
+
+        .system-resource-body {
+            display: grid;
+            gap: 1.22rem;
+        }
+
+        .system-resource-meter {
+            display: grid;
+            grid-template-columns: 8.2rem minmax(0, 1fr);
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .system-resource-label {
+            display: grid;
+            gap: 0.38rem;
+            min-width: 0;
+        }
+
+        .system-resource-name,
+        .system-resource-detail-title {
+            color: color-mix(in srgb, var(--color-text) 58%, transparent);
+            font-size: 0.82rem;
+            font-weight: 430;
+            letter-spacing: 0.02em;
+        }
+
+        .system-resource-value,
+        .system-resource-detail-value {
+            color: color-mix(in srgb, var(--color-text) 76%, transparent);
+            font-size: 0.96rem;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .system-resource-track {
+            height: 0.64rem;
+            overflow: hidden;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--color-border) 70%, transparent);
+        }
+
+        .system-resource-fill {
+            display: block;
+            width: var(--resource-value, 0%);
+            height: 100%;
+            border-radius: inherit;
+            background: var(--resource-color, #22c55e);
+            transition: width 0.22s ease;
+        }
+
+        .system-resource-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem 1.5rem;
+            margin-top: 0.15rem;
+            padding-top: 1.02rem;
+            border-top: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+        }
+
+        .system-resource-detail-value {
+            margin-top: 0.48rem;
+            font-family: var(--font-family-code, "Roboto Mono", monospace);
+            font-size: 0.88rem;
+        }
+
+        @container welcome-system (max-width: 520px) {
+            .system-resource-meter,
+            .system-resource-footer {
+                grid-template-columns: 1fr;
+            }
+
+            .system-resource-meter {
+                gap: 0.55rem;
+            }
+        }
+
+        @container welcome-quick (max-width: 1000px) {
+            .welcome-actions {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @container welcome-quick (max-width: 640px) {
+            .welcome-actions {
+                grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr));
+                gap: 0.75rem;
+            }
+
+            .welcome-action-card,
+            .welcome-action-card.is-wide {
+                position: relative;
+                grid-column: auto;
+                flex-direction: column;
+                justify-content: center;
+                gap: 0.65rem;
+                aspect-ratio: 1;
+                min-height: 0;
+                padding: 0.75rem;
+                text-align: center;
+            }
+
+            .welcome-action-icon {
+                font-size: 2rem;
+            }
+
+            .welcome-action-title {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex: none;
+                min-height: 2.6em;
+                font-size: 0.88rem;
+                line-height: 1.3;
+            }
+
+            .welcome-action-arrow {
+                display: none;
+            }
+
+            .welcome-action-arrow[name="open_in_new"] {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                display: inline-flex;
+                font-size: 1rem;
+                opacity: 0.5;
+            }
+        }
+
+        @media (max-width: 1180px) {
+            .welcome-container {
+                padding-inline: clamp(1.25rem, 4vw, 3rem);
+            }
+
+            .welcome-board { grid-template-columns: 1fr; }
+            .welcome-board > .is-paired,
+            .welcome-board > .welcome-quick-section[data-welcome-size="half"],
+            .welcome-board > .welcome-system-card[data-welcome-size="half"] { grid-column: 1 / -1; }
+
+            .welcome-shell {
+                padding-top: 4rem;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .welcome-container {
+                min-height: 100%;
+                padding: 4.5rem 1rem 2rem;
+            }
+
+            .welcome-shell {
+                gap: 1.2rem;
+                padding-top: 4rem;
+            }
+
+            .welcome-intro-dismiss {
+                align-self: flex-start;
+                margin-top: 0.2rem;
+            }
+
+            .welcome-composer,
+            .welcome-composer .input-row {
+                min-height: 4.35rem;
+            }
+
+            .welcome-composer #chat-input-container {
+                flex: 1;
+                width: auto;
+            }
+
+            .welcome-composer #chat-input {
+                min-height: 2.8rem;
+                padding-block: 0.5rem;
+                font-size: 1rem;
+            }
+
+            .welcome-composer #chat-input.is-empty::before {
+                display: block;
+                font-size: 0.875rem;
+                line-height: 1.35;
+            }
+
+            .welcome-banner {
+                grid-template-columns: auto minmax(0, 1fr);
+                gap: 0.82rem;
+                padding: 0.95rem;
+            }
+
+            .welcome-banner-dismiss {
+                position: absolute;
+                top: 0.7rem;
+                right: 0.7rem;
+                margin: 0;
+            }
+
+            .welcome-banner-content {
+                padding-right: 1.9rem;
+            }
+
+            .welcome-banner-html {
+                max-width: none;
+            }
+
+            .welcome-banner-cta {
+                grid-column: 2;
+                justify-self: start;
+                margin-top: 0.25rem;
+            }
+
+            .welcome-system-card {
+                padding: 1.15rem;
+            }
+
+            .system-resource-meter {
+                grid-template-columns: 1fr;
+                gap: 0.55rem;
+            }
+
+            .system-resource-footer {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+</body>
+
+</html>
